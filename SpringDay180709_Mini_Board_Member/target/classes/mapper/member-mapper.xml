@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.MemberMapper">
+	<insert id="insertMem" parameterType="MemberVO">
+		insert into member1
+		values(#{memberId}, #{memberPw}, #{memberName}, #{memberNick})
+	</insert>
+	
+	<update id="updateMem" parameterType="MemberVO">
+		update member1
+		set
+			member_pw=#{memberPw}, member_name=#{memberName}, 
+			member_nickname=#{memberNick}
+		where
+			member_id=#{memberId}	
+	</update>
+	
+	<select id="selectMem" parameterType="String" resultMap="memberMap">
+		select * from member1 where member_id=#{id}
+	</select>
+	
+	<select id="checkPass" parameterType="String" resultType="String">
+		select member_pw from member1 where member_id=#{id}
+	</select>
+	
+	<select id="checkNamebyId" parameterType="String" resultType="String">
+		select member_name from member1 where member_id=#{id}
+	</select>
+	
+	<select id="checkName" parameterType="String" resultType="String">
+		select member_name from member1 where member_nickname=#{nick}
+	</select>
+	
+	<resultMap type="MemberVO" id="memberMap">
+		<result column="member_id" property="memberId"/>
+		<result column="member_pw" property="memberPw"/>
+		<result column="member_name" property="memberName"/>
+		<result column="member_nickname" property="memberNick"/>
+	</resultMap>
+</mapper>

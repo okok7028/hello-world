@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.BoardMapper">
+	<insert id="insertBoard" parameterType="BoardVO">
+		insert into board1
+		values(board1_seq.nextval, #{title}, #{writer}, #{content}, #{readCount}, 
+		sysdate , #{boardRef}, #{replySeq}, #{replyLevel})
+		<selectKey order="AFTER" keyProperty="boardNum" resultType="int">
+			select board1_seq.currval from dual
+		</selectKey>
+	</insert>
+	
+	<select id="selectMaxNum" resultType="int">
+		select coalesce(max(board_num), 0) from board1
+	</select>
+	
+	<select id="selectBoardList" resultMap="brm">
+		select board_num, title, writer, content, readcount,
+		to_char(writedate, 'YYYY-MM-DD hh24:mi') as writedate, board_ref, reply_seq,
+		reply_level from (
+			select rownum as rnum, board_num, title, writer, content, readcount, writedate,
+			board_ref, reply_seq, reply_level from (
+				select * from board1 order by board_ref desc, reply_seq
+			)
+		) where rnum&gt;=#{startRow} and rnum&lt;=#{endRow}
+	</select>
+	
+	<select id="selectBoard" resultMap="brm">
+		select board_num, title, writer, content, readcount,
+		to_char(writedate, 'YYYY-MM-DD hh24:mi') as writedate, board_ref, reply_seq,
+		reply_level from board1 where board_num=#{boardNum}
+	</select>
+	
+	<select id="selectTotalCount" resultType="int">
+		select count(*) from board1
+	</select>
+	
+	<update id="updateReply">
+		update board1 set reply_seq=reply_seq+1
+		where board_ref=#{boardRef} and reply_seq>#{replySeq}
+	</update>
+	
+	<update id="updateReadCount">
+		update board1 set readcount=readcount+1
+		where board_num=#{boardNum}
+	</update>
+	
+	<update id="updateBoard" parameterType="BoardVO">
+		update board1 set title=#{title}, content=#{content}
+		where board_num=#{boardNum}
+	</update>
+	
+	<delete id="deleteBoard">
+		delete from board1 where board_num=#{boardNum}
+	</delete>
+	
+	<insert id="insertComment" parameterType="CommentVO">
+		insert into comment1
+		values(comment1_seq, #{writer}, #{content}, sysdate,
+		#{boardRef}, #{commentRef}, #{commentSeq}, #{commentLevel})
+		<selectKey order="AFTER" keyProperty="commentNum">
+			select comment1_seq.currval from dual
+		</selectKey>
+	</insert>
+	
+	<select id="selectCommentList" resultMap="crm">
+		select comment_num, writer, content, to_char(writedate, 'YYYY-MM-DD hh24:mi') as writedate, 
+		board_ref, comment_ref,comment_seq, comment_level from (
+			select rownum as rnum, comment_num, writer, content, writedate, board_ref, comment_ref,
+			comment_seq, comment_level from (
+				select * from comment1 order by comment_ref , comment_seq
+			)
+		) where rnum&gt;=#{startRow} and rnum&lt;=#{endRow}
+	</select>
+	
+	<select id="selectCommentCount" resultType="int">
+		select count(*) from comment1 where board_ref=#{boardRef}
+	</select>
+	
+	<resultMap type="BoardVO" id="brm">
+		<result column="board_num" property="boardNum"/>
+		<result column="title" property="title"/>
+		<result column="writer" property="writer"/>
+		<result column="content" property="content"/>
+		<result column="readcount" property="readCount"/>
+		<result column="writedate" property="writedate"/>
+		<result column="board_ref" property="boardRef"/>
+		<result column="reply_seq" property="replySeq"/>
+		<result column="reply_level" property="replyLevel"/>
+	</resultMap>
+	
+	<resultMap type="CommentVO" id="crm">
+		<result column="comment_num" property="commentNum"/>
+		<result column="writer" property="writer"/>
+		<result column="content" property="content"/>
+		<result column="writedate" property="writedate"/>
+		<result column="board_ref" property="boardRef"/>
+		<result column="comment_ref" property="commentRef"/>
+		<result column="comment_seq" property="commentSeq"/>
+		<result column="comment_level" property="commentLevel"/>
+	</resultMap>
+</mapper>
